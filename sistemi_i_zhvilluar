@@ -1,6 +1,13 @@
 import os
+
+import customtkinter
+import ttkbootstrap as tb
+from tkinter import *
+from ttkbootstrap.constants import *
+from customtkinter import *
+from CTkListbox import *
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from tkinter import simpledialog
 import sqlite3
 import threading
@@ -9,22 +16,25 @@ import win32print
 import win32ui
 import win32con
 from datetime import datetime
+import customtkinter as ctk
+
 
 
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 # Initialize counter
-printer_name = "RONGTA 80mm Series Printer"  # Change this to your actual printer name
+printer_name = "80mm Series Printer"  # Change this to your actual printer name
 
 # 80mm paper size at 203 DPI (576px width)
 PAPER_WIDTH = 576
 LINE_HEIGHT = 50  # Increase for proper spacing
 # Initialize the Tkinter window
-root = tk.Tk()
-root.title("Poliklinike System")
-root.geometry("600x400")
-root.configure(bg="Linen")
+# root = tk.Tk()
+root = customtkinter.CTk(fg_color="#4cae61")
+root.title("Sistem Poliklinike")
+root.geometry("900x600")
+
 
 # Initialize global variables
 current_user = None
@@ -113,109 +123,160 @@ def show_dashboard():
 
 def create_admin_dashboard():
     """Create the admin dashboard."""
-    label = tk.Label(root, text="Nderfaqja Admin", font=("Arial", 24, "bold"))
+    label = CTkLabel(root, text="Nderfaqja Admin", font=("Arial", 24, "bold"),
+                     width=150, height=100,
+                     text_color='#1b4b39',
+                     )
     label.pack(pady=20)
 
     # Add Department button
-    add_dept_button = tk.Button(root, text="Shto Departament", font=("Arial", 16), command=add_department)
+    add_dept_button = CTkButton(root, text="Shto Departament", font=("Arial", 16), command=add_department,
+                                width=100, height=80,
+                                corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                border_color="#71a866", border_width=3, hover=True,
+                                )
     add_dept_button.pack(pady=10)
 
     # Remove Department button
-    remove_dept_button = tk.Button(root, text="Fshi Departament", font=("Arial", 16), command=remove_department)
+    remove_dept_button = CTkButton(root, text="Fshi Departament", font=("Arial", 16), command=remove_department,
+                                   width=100, height=80,
+                                   corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                   border_color="#71a866", border_width=3, hover=True,
+                                   )
     remove_dept_button.pack(pady=10)
 
     # List departments
-    list_depts_button = tk.Button(root, text="Listo Departamentet", font=("Arial", 16), command=list_departments)
+    list_depts_button = CTkButton(root, text="Listo Departamentet", font=("Arial", 16), command=list_departments,
+                                  width=100, height=80,
+                                  corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                  border_color="#71a866", border_width=3, hover=True,
+                                  )
     list_depts_button.pack(pady=10)
 
     # Logout button
-    logout_button = tk.Button(root, text="Dil", font=("Arial", 16), command=logout)
+    logout_button = CTkButton(root, text="Dil", font=("Arial", 16), command=logout,
+                              width=100, height=80,
+                              corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                              border_color="#71a866", border_width=3, hover=True,
+                              )
     logout_button.pack(pady=20)
 
 
 def create_user_dashboard():
     """Create the user dashboard."""
-    label = tk.Label(root, text="Nderfaqja Perdorues", font=("Arial", 30, "bold"))
+
+    label = CTkLabel(root, text="Zgjidhni nje nga sherbimet", width=600, height=100,font=("Arial", 30, "bold"),
+        bg_color="#4cae61",corner_radius=10, text_color="#0e3710", pady=20)
     label.pack(pady=30)
 
     # Show the list of departments
-    show_departments_button = tk.Button(root, text="Shfaq Departamentet", font=("Arial", 24), command=show_departments)
+    show_departments_button = CTkButton(root, text="Shfaq Departamentet", font=("Arial", 24), command=show_departments,
+                            corner_radius=32, fg_color="#2c9531", hover_color="#41d048",
+                             border_color="#59d5a6", border_width=3,
+                             width=150, height=100, text_color="white",)
     show_departments_button.pack(pady=10)
 
     # Logout button
-    logout_button = tk.Button(root, text="Dil", font=("Arial", 24), command=logout)
+    logout_button = CTkButton(root, text="Dil", font=("Arial", 24), command=logout,
+                              corner_radius=32, fg_color="#235f48", hover_color="#3c9271",
+                             border_color="#59d5a6", border_width=3,
+                             width=150, height=100, text_color="white",)
     logout_button.pack(pady=20)
 
 
+def show_value(selected_option):
+    """Handle the selected option."""
+    print(selected_option)
+
+
+
 def show_departments():
-    """Shfaq listën e departamenteve dhe lejo përdoruesin të zgjedhë një të tillë."""
+    """Shfaq listën e departamenteve brenda dritares ekzistuese."""
     print("Hapja e departamenteve...")  # Për debug
+
+    # Pastro dritaren ekzistuese
+    for widget in root.winfo_children():
+        widget.destroy()
+
+    # Connecting to the database and fetching department data
     conn = sqlite3.connect('system.db')
     c = conn.cursor()
     c.execute("SELECT * FROM departments")
     departments = c.fetchall()
     conn.close()
 
-    if departments:
-        # Krijimi i një dritareje të re për departamentet
-        dept_window = tk.Toplevel(root)
-        dept_window.title("Departamentet")
-        dept_window.geometry("400x300")
+    # Creating the label for department selection
+    dept_label = ctk.CTkLabel(root, text="Zgjidh një departament:", font=("Arial", 20),
+                              bg_color="#4cae61", corner_radius=10, text_color="#0e3710", pady=20)
+    dept_label.pack(pady=10)
 
-        dept_label = tk.Label(dept_window, text="Zgjidh një departament:", font=("Arial", 20))
-        dept_label.pack(pady=10)
+    dept_var = tk.StringVar()
 
-        dept_var = tk.StringVar()
+    # Use tkinter's Listbox here
+    dept_listbox = tk.Listbox(root, height=5, width=30, font=("Arial", 18), selectmode=tk.SINGLE, bg="#77cead")
+    for dept in departments:
+        dept_listbox.insert(tk.END, dept[1])  # Shto emrin e departamentit në listë
+    dept_listbox.pack(pady=10)
 
-        # Krijimi i një Listbox për të shfaqur departamentet
-        dept_listbox = tk.Listbox(dept_window, height=5, width=20, font=("Arial", 18), selectmode=tk.SINGLE)
-        for dept in departments:
-            dept_listbox.insert(tk.END, dept[1])  # Shto emrin e departamentit në listë
-        dept_listbox.pack(pady=10)
+    # Function to handle selection event
+    def on_select(event):
+        selected_idx = dept_listbox.curselection()
+        if selected_idx:
+            selected_value = dept_listbox.get(selected_idx[0])
+            show_value(selected_value)  # Call show_value when an option is selected
 
-        # Funksioni për të zgjedhur një departament dhe shfaqjen e informacionit të tij
-        def select_department():
-            selected_dept_idx = dept_listbox.curselection()
-            if selected_dept_idx:
-                department_name = dept_listbox.get(selected_dept_idx[0])
-                global selected_department
-                selected_department = department_name
-                dept_window.destroy()  # Mbyll dritaren e departamentit
-                show_queue(department_name)  # Shfaq radhën e departamentit të zgjedhur
-            else:
-                messagebox.showwarning("Gabim në zgjedhje", "Ju lutemi zgjidhni një departament.")
+    # Bind the listbox to call the show_value function on selection
+    dept_listbox.bind("<<ListboxSelect>>", on_select)
 
-        # Butoni për të konfirmuar zgjedhjen e departamentit
-        select_button = tk.Button(dept_window, text="Shiko rradhen...", font=("Arial", 18), command=select_department)
-        select_button.pack(pady=10)
+    def select_department():
+        selected_dept_idx = dept_listbox.curselection()
+        if selected_dept_idx:
+            department_name = dept_listbox.get(selected_dept_idx[0])
+            global selected_department
+            selected_department = department_name
+            show_queue(department_name)  # Shfaq radhën e departamentit të zgjedhur
+        else:
+            messagebox.showwarning("Gabim në zgjedhje", "Ju lutemi zgjidhni një departament.")
 
-        def go_back():
-            dept_window.destroy()  # Mbyll dritaren e departamentit dhe kthehuni në ekranin paraprak
-            show_dashboard()  # Ky funksion duhet të jetë i përshtatshëm për të kthyer në dashboard
+    # Button to select a department
+    select_button = ctk.CTkButton(root, text="Shiko radhën...", font=("Arial", 18), command=select_department,
+                                  width=250, height=100,
+                                  corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                                  border_color="#1c5373", border_width=3, hover=True,
+                                  )
+    select_button.pack(pady=10)
+    # Go back button
+    def go_back():
+        show_dashboard()
 
-        # Butoni për të kthyer pas (Back button)
-        back_button = tk.Button(dept_window, text="Kthehu", font=("Arial", 18), command=go_back)
-        back_button.pack(pady=10)
-    else:
-        messagebox.showwarning("Nuk ka departamente", "Nuk janë gjetur departamente.")
+    back_button = ctk.CTkButton(root, text="Kthehu", font=("Arial", 18), command=go_back,
+                                width=250, height=100,
+                                corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                                border_color="#1c5373", border_width=3, hover=True,
+                                )
+    back_button.pack(pady=10)
 
 department_counters = {}
+
+
 def show_queue(department_name):
-    """Shfaq informacionin e departamentit të zgjedhur dhe mundësinë për të printuar biletën."""
-    # Krijimi i një dritareje të re për departamentin e zgjedhur
-    dept_info_window = tk.Toplevel(root)
-    dept_info_window.title(f"Departamenti: {department_name}")
-    dept_info_window.geometry("500x400")
+    """Shfaq informacionin e departamentit të zgjedhur në të njëjtën dritare."""
+    # Pastro dritaren ekzistuese
+    for widget in root.winfo_children():
+        widget.destroy()
+
     if department_name not in department_counters:
         department_counters[department_name] = 1
+
     # Trego radhën aktuale për departamentin
-    queue_label = tk.Label(dept_info_window, text=f"Rradha aktuale në {department_name} është: {department_counters[department_name]}", font=("Arial", 18))
+    queue_label = CTkLabel(root, text=f"Rradha aktuale në {department_name} është: {department_counters[department_name]}",
+                           font=("Arial", 18),bg_color="#4cae61",corner_radius=10, text_color="#0e3710", pady=20 )
     queue_label.pack(pady=10)
 
     def increment_counter():
         """Increment the counter and print the receipt directly."""
         department_counters[department_name] += 1  # Increment the counter for the specific department
-        queue_label.config(text=f"Rradha aktuale në {department_name} është: {department_counters[department_name]}")  # Update the label with the new counter value
+        queue_label.configure(text=f"Rradha aktuale në {department_name} është: {department_counters[department_name]}")  # Update the label with the new counter value
         print(f"Current queue for {department_name}: {department_counters[department_name]}")
 
     def reset_counter():
@@ -288,15 +349,22 @@ def show_queue(department_name):
             print(f"Printing error: {e}")
 
 
-    print_button = tk.Button(dept_info_window, text="Printo Biletën", font=("Arial", 16), command=lambda: [increment_counter(), print_receipt(department_counters[department_name])])
+    print_button = CTkButton(root, text="Printo Biletën", font=("Arial", 16),
+                             width=150, height=100,
+                             corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                             border_color="#1c5373", border_width=3, hover=True,
+                             command=lambda: [increment_counter(), print_receipt(department_counters[department_name])])
     print_button.pack(pady=10)
 
     def go_back():
-        dept_info_window.destroy()  # Mbyll dritaren e departamentit dhe kthehuni në ekranin paraprak
         show_departments()  # Ky funksion duhet të jetë i përshtatshëm për të kthyer në dashboard
 
     # Butoni për të kthyer pas (Back button)
-    back_button = tk.Button(dept_info_window, text="Kthehu", font=("Arial", 16), command=go_back)
+    back_button = CTkButton(root, text="Kthehu", font=("Arial", 16), command=go_back,
+                            width=150, height=100,
+                            corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                            border_color="#1c5373", border_width=3, hover=True,
+                            )
     back_button.pack(pady=10)
 
 
@@ -363,23 +431,28 @@ def update_content(clear=False):
 def login_screen():
     update_content(clear=True)  # Clear the current content
 
-    label = tk.Label(root, text="Sistem Poliklinike", font=("Arial", 28, "bold"))
+    label = CTkLabel(root, text="Miresevini!", width=600, height=100, font=("Manrope", 40),
+                     bg_color="#4cae61",corner_radius=10, text_color="#0e3710", pady=20)
     label.pack(pady=20)
 
     # Login button
-    login_button = tk.Button(root, text="Login", font=("Arial", 24), command=login)
-    login_button.pack(pady=20)
+    login_button = CTkButton(root, text="Login", command=login, corner_radius=32, fg_color="#a97a1d", hover_color="#ddb51f",
+                             border_color="#cd9628", border_width=3,
+                             font=("Manrope ", 30), width=150, height=100, text_color="white", )
+    login_button.pack(pady=20, )
 
     # Exit button
-    exit_button = tk.Button(root, text="Exit", font=("Arial", 24), command=root.quit)
+    exit_button = CTkButton(root, text="Exit", command=root.quit, font=("Arial", 30), width=150, height=100,
+                            corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                            border_color="#1c5373", border_width=3,hover=True,
+                            )
     exit_button.pack(pady=20)
 
 
 # Initialize the database and start the login screen
 init_db()
-frame = tk.Frame(root)
+frame = customtkinter.CTkFrame(master=root)
 frame.pack(fill="both", expand=True)
-
 login_screen()
 
 root.mainloop()

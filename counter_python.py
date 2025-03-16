@@ -123,23 +123,42 @@ def show_dashboard():
 
 def create_admin_dashboard():
     """Create the admin dashboard."""
-    label = tk.Label(root, text="Nderfaqja Admin", font=("Arial", 24, "bold"))
+    label = CTkLabel(root, text="Nderfaqja Admin", font=("Arial", 24, "bold"),
+                     width=150, height=100,
+                     text_color='#1b4b39',
+                     )
     label.pack(pady=20)
 
     # Add Department button
-    add_dept_button = tk.Button(root, text="Shto Departament", font=("Arial", 16), command=add_department)
+    add_dept_button = CTkButton(root, text="Shto Departament", font=("Arial", 16), command=add_department,
+                                width=100, height=80,
+                                corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                border_color="#71a866", border_width=3, hover=True,
+                                )
     add_dept_button.pack(pady=10)
 
     # Remove Department button
-    remove_dept_button = tk.Button(root, text="Fshi Departament", font=("Arial", 16), command=remove_department)
+    remove_dept_button = CTkButton(root, text="Fshi Departament", font=("Arial", 16), command=remove_department,
+                                   width=100, height=80,
+                                   corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                   border_color="#71a866", border_width=3, hover=True,
+                                   )
     remove_dept_button.pack(pady=10)
 
     # List departments
-    list_depts_button = tk.Button(root, text="Listo Departamentet", font=("Arial", 16), command=list_departments)
+    list_depts_button = CTkButton(root, text="Listo Departamentet", font=("Arial", 16), command=list_departments,
+                                  width=100, height=80,
+                                  corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                                  border_color="#71a866", border_width=3, hover=True,
+                                  )
     list_depts_button.pack(pady=10)
 
     # Logout button
-    logout_button = tk.Button(root, text="Dil", font=("Arial", 16), command=logout)
+    logout_button = CTkButton(root, text="Dil", font=("Arial", 16), command=logout,
+                              width=100, height=80,
+                              corner_radius=32, fg_color="#256818", hover_color="#4e933e",
+                              border_color="#71a866", border_width=3, hover=True,
+                              )
     logout_button.pack(pady=20)
 
 
@@ -169,6 +188,8 @@ def show_value(selected_option):
     """Handle the selected option."""
     print(selected_option)
 
+
+
 def show_departments():
     """Shfaq listën e departamenteve brenda dritares ekzistuese."""
     print("Hapja e departamenteve...")  # Për debug
@@ -191,11 +212,22 @@ def show_departments():
 
     dept_var = tk.StringVar()
 
-    # Use tkinter's Listbox here
-    dept_listbox = tk.Listbox(root, height=5, width=30, font=("Arial", 18), selectmode=tk.SINGLE, bg="#77cead")
+    # Create a Frame to hold the Listbox and Scrollbar together
+    listbox_frame = tk.Frame(root)
+    listbox_frame.pack(pady=10)
+
+    # Create a Listbox widget to display department names
+    dept_listbox = tk.Listbox(listbox_frame, height=10, width=30, font=("Arial", 18), selectmode=tk.SINGLE, bg="#77cead")
     for dept in departments:
-        dept_listbox.insert(tk.END, dept[1])  # Shto emrin e departamentit në listë
-    dept_listbox.pack(pady=10)
+        dept_listbox.insert(tk.END, dept[1])  # Add department name to the listbox
+    dept_listbox.pack(side="left", fill="both", expand=True)
+
+    # Create a Scrollbar widget and attach it to the Listbox
+    scrollbar = tk.Scrollbar(listbox_frame, orient="vertical", command=dept_listbox.yview)
+    scrollbar.pack(side="right", fill="y")
+
+    # Link the scrollbar with the listbox
+    dept_listbox.config(yscrollcommand=scrollbar.set)
 
     # Function to handle selection event
     def on_select(event):
@@ -207,7 +239,6 @@ def show_departments():
     # Bind the listbox to call the show_value function on selection
     dept_listbox.bind("<<ListboxSelect>>", on_select)
 
-
     def select_department():
         selected_dept_idx = dept_listbox.curselection()
         if selected_dept_idx:
@@ -216,7 +247,7 @@ def show_departments():
             selected_department = department_name
             show_queue(department_name)  # Shfaq radhën e departamentit të zgjedhur
         else:
-            messagebox.showwarning("Gabim në zgjedhje", "Ju lutemi zgjidhni një departament.")
+            messagebox.showwarning("Gabim në zgjedhje", "Ju lutem zgjidhni një departament.")
 
     # Button to select a department
     select_button = ctk.CTkButton(root, text="Shiko radhën...", font=("Arial", 18), command=select_department,
@@ -236,6 +267,8 @@ def show_departments():
                                 border_color="#1c5373", border_width=3, hover=True,
                                 )
     back_button.pack(pady=10)
+
+
 
 department_counters = {}
 
@@ -330,14 +363,22 @@ def show_queue(department_name):
             print(f"Printing error: {e}")
 
 
-    print_button = tk.Button(root, text="Printo Biletën", font=("Arial", 16), command=lambda: [increment_counter(), print_receipt(department_counters[department_name])])
+    print_button = CTkButton(root, text="Printo Biletën", font=("Arial", 16),
+                             width=150, height=100,
+                             corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                             border_color="#1c5373", border_width=3, hover=True,
+                             command=lambda: [increment_counter(), print_receipt(department_counters[department_name])])
     print_button.pack(pady=10)
 
     def go_back():
         show_departments()  # Ky funksion duhet të jetë i përshtatshëm për të kthyer në dashboard
 
     # Butoni për të kthyer pas (Back button)
-    back_button = tk.Button(root, text="Kthehu", font=("Arial", 16), command=go_back)
+    back_button = CTkButton(root, text="Kthehu", font=("Arial", 16), command=go_back,
+                            width=150, height=100,
+                            corner_radius=32, fg_color="#164384", hover_color="#608ac6",
+                            border_color="#1c5373", border_width=3, hover=True,
+                            )
     back_button.pack(pady=10)
 
 
