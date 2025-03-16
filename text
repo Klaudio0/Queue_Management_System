@@ -1,0 +1,153 @@
+import os
+import tkinter as tk
+import threading
+import time
+import win32print
+import win32ui
+import win32con
+from datetime import datetime
+
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+# Initialize counter
+counter = 0
+printer_name = "RONGTA 80mm Series Printer"  # Change this to your actual printer name
+
+# 80mm paper size at 203 DPI (576px width)
+PAPER_WIDTH = 576
+LINE_HEIGHT = 50  # Increase for proper spacing
+
+def print_receipt(number):
+    """Prints a correctly formatted receipt on an 80mm thermal printer."""
+    try:
+        # Open the printer
+        printer = win32print.OpenPrinter(printer_name)
+        printer_dc = win32ui.CreateDC()
+        printer_dc.CreatePrinterDC(printer_name)
+
+        # Start document and page
+        printer_dc.StartDoc("Queue Receipt")
+        printer_dc.StartPage()
+
+        # Set proper scaling (1 pixel = 1 unit)
+        printer_dc.SetMapMode(win32con.MM_TEXT)
+        current_date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+
+        # Set large font
+        font = win32ui.CreateFont({
+            "name": "Arial",
+            "height": 40,  # Adjust size for thermal printer readability
+            "weight": win32con.FW_BOLD
+        })
+        printer_dc.SelectObject(font)
+
+        # Center text horizontally
+        start_x = 50  # Adjust for center alignment
+        start_y = -50  # Start from top margin
+
+        # Print each line with correct spacing
+
+        printer_dc.TextOut(start_x+10, start_y + LINE_HEIGHT, current_date)
+
+        special_font = win32ui.CreateFont({
+            "name": "Arial",  # Font name
+            "height": 70,  # Larger font size for this specific line
+            "weight": win32con.FW_BOLD  # Bold weight
+        })
+        printer_dc.SelectObject(special_font)
+
+        # Print the number line with the new font size
+        printer_dc.TextOut(start_x+10, start_y + 3 * LINE_HEIGHT, f"Numri juaj : {number}")
+        font = win32ui.CreateFont({
+            "name": "Arial",
+            "height": 30,  # Adjust size for thermal printer readability
+            "weight": win32con.FW_BOLD
+        })
+        printer_dc.SelectObject(font)
+
+        printer_dc.TextOut(start_x+10, start_y + 5 * LINE_HEIGHT, "Ju lutem prisni radhen!")
+
+
+        # End the document
+        printer_dc.EndPage()
+        printer_dc.EndDoc()
+        printer_dc.DeleteDC()
+
+        print(f"Printed receipt for number: {number}")
+
+    except Exception as e:
+        print(f"Printing error: {e}")
+
+def increment_counter():
+    """Increment the counter and print the receipt directly."""
+    global counter
+    counter += 1
+    label.config(text=f"Numri juaj është: {counter+1}")
+
+    # Print the receipt directly to the printer
+    print_receipt(counter)
+
+def reset_counter():
+    """Reset the counter every 24 hours."""
+    global counter
+    while True:
+        time.sleep(86400)  # Wait for 24 hours (86,400 seconds)
+        counter = 0
+        label.config(text="Numri juaj është: 0")
+
+
+def save_to_pdf():
+    """Saves the number of clients at the time of closing to a PDF file."""
+    global counter
+    date_str = datetime.now().strftime("%d-%m-%Y")
+    filename = f"client_report_{date_str}.pdf"  # Saves as "client_report_YYYY-MM-DD.pdf"
+
+    # Define file path (same directory as script)
+    file_path = os.path.join(os.getcwd(), filename)
+
+    c = canvas.Canvas(file_path, pagesize=letter)
+    c.setFont("Helvetica-Bold", 14)
+
+    c.drawString(100, 700, "Numri i klienteve ne daten:")
+    c.drawString(100, 680, f"Data: {date_str}")
+    c.drawString(100, 660, f"Numri i klienteve: {counter}")
+
+    c.save()
+    print(f"Saved client report: {file_path}")
+
+def on_closing():
+    """Handles actions before closing the application."""
+    save_to_pdf()  # Save client data before exiting
+    root.destroy()
+
+
+
+
+# Create the main window
+root = tk.Tk()
+root.title("Sistem Poliklinike")
+root.geometry("700x500")
+root.configure(bg="Linen")
+# root.attributes('-fullscreen', True)
+
+frame = tk.Frame(root, bg="lightgreen")
+frame.pack(expand=True)
+
+# Create a label to display the number
+label = tk.Label(root, text="Numri juaj është: 1", font=("Arial", 40, "bold"), bg="Linen")
+label.pack(pady=20)
+label.place(relx=0.5, rely=0.4, anchor="center")
+
+# Create a button to increment the counter
+button = tk.Button(root, text="Kliko për të marrë numrin", font=("Arial", 18, "bold"), command=increment_counter, width=25, height=2, bg="OliveDrab", fg="white", activebackground="DarkOliveGreen", relief="raised")
+button.pack(pady=10)
+button.place(relx=0.5, rely=0.6, anchor="center")
+# Start background thread to reset counter every 24 hours
+threading.Thread(target=reset_counter, daemon=True).start()
+
+
+root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# Run the Tkinter event loop
+root.mainloop()
